@@ -1,0 +1,199 @@
+#include <iostream>
+#include <bits/stdc++.h>
+#include <algorithm>
+#include <vector>
+#include <time.h>
+using namespace std;
+using std::vector;
+using std::string;
+#define maxx 1000
+int n;//n为城市的数量;
+int m;//m=(n-1)*n/2,即假设每个城市之间都可以连成边，那么边的最大值;
+int maxn;//maxn为最大城市的数量，即加上假设要删除的城市数量;
+int s[maxx];//s[i]代表第i个城市是否需要被连起来，0不需要，1需要;
+int f[maxx];
+int mapp[maxx][maxx];
+struct node
+{
+    int num;
+    int city1;
+    int city2;
+    int len;
+};
+vector<node>jgt;
+int sett(int x)
+{
+    if (f[x]==x)
+    {
+        return x;
+    }
+    else
+    {
+        f[x]=sett(f[x]);
+        return f[x];
+    }
+}
+bool unions(int x,int y)
+{
+    int fx=sett(x);
+    int fy=sett(y);
+    if (fx!=fy)
+    {
+        f[fy]=fx;
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+bool cmp(node A,node B)
+{
+  if (A.len==B.len)
+  {
+      return A.num<B.num;
+  }
+  else
+  {
+      return A.len<B.len;
+  }
+}
+void kruskal()
+{
+    int summ=0;
+
+    memset(mapp,0,sizeof(mapp));
+    for (int i=1;i<=maxn;i++)
+    {
+        f[i]=i;
+    }
+    sort(jgt.begin(),jgt.end(),cmp);
+    cout<<"最佳方案的连接关系为"<<endl;
+    for (int i=0;i<m;i++)
+    {
+        if (unions(jgt[i].city1,jgt[i].city2))
+        {
+            cout<<jgt[i].city1<<"-"<<jgt[i].city2<<" ";
+            mapp[jgt[i].city1][jgt[i].city2]=1;
+            mapp[jgt[i].city2][jgt[i].city1]=1;
+            summ+=jgt[i].len;
+        }
+    }
+    cout<<endl;
+    cout<<"最佳方案的邻接矩阵为"<<endl;
+    cout<<"  ";
+    for (int i=1;i<=maxn;i++)
+    {
+        if (s[i])
+        {
+            cout<<i<<" ";
+        }
+    }
+    cout<<endl;
+    for (int i=1;i<=maxn;i++)
+    {
+        if (s[i])
+        {
+            cout<<i<<" ";
+        }
+        for (int j=1;j<=maxn;j++)
+        {
+            if (s[i]&&s[j])
+            {
+                cout<<mapp[i][j]<<" ";
+            }
+        }
+        if (s[i])
+        {
+        cout<<endl;
+        }
+    }
+    cout<<"最佳方案的建设成本为"<<summ<<endl;
+
+}
+int main()
+{
+    std::ios::sync_with_stdio(false);
+    int t;
+    int sum=0;
+    cin>>n;
+    maxn=n;
+    memset(s,1,sizeof(s));
+    m=((n-1)*n)/2;
+    for (int i=1;i<n;i++)
+    {
+        for (int j=i+1;j<=n;j++)
+        {
+            node country;
+            t=rand()%1000;
+            country.num=sum;
+            country.city1=i;
+            country.city2=j;
+            country.len=t;
+            jgt.push_back(country);
+            cout<<jgt[sum].num<<" "<<jgt[sum].city1<<" "<<jgt[sum].city2<<" "<<jgt[sum].len<<endl;
+            sum++;
+        }
+    }
+    kruskal();
+    int flag;//增加或减少城市的指令，0为不变，正数为增加，负数为减少，该数字的绝对值为增加或者减少了多少个城市；
+    while (cin>>flag)
+    {
+ if(flag>0)//flag为增加城市的数量
+    {
+        maxn+=flag;
+        cout<<"增加边的信息为："<<endl;
+        while (flag--)//
+        {
+            n++;//城市数量加一
+            for (int i=1;i<n;i++)
+            {
+
+            node country;
+            t=rand()%1000;//随机增加城市与现有城市之间边的长度
+            country.num=sum;
+            country.city1=i;
+            country.city2=n;
+            country.len=t;
+            jgt.push_back(country);//压入jgt中
+            cout<<jgt[sum].num<<" "<<jgt[sum].city1<<" "<<jgt[sum].city2<<" "<<jgt[sum].len<<endl;
+            sum++;
+            }
+            m+=n;//边的总数加n
+        }
+        kruskal();//求最小生成树
+    }
+else if (flag<0)
+    {
+        flag=-flag;//求相反数
+        int r=n;
+        cout<<"删除的城市为："<<endl;
+        while (flag>0)
+        {
+            int k=rand()%r+1;//随机删去的城市;
+            while (s[k]==0)//若删去的城市现在还未删去
+            {
+                k=rand()%r+1;//若已经删去，那么重新随机
+            }
+            s[k]=0;
+            cout<<k<<" ";
+        for(vector<node>::iterator it=jgt.begin();it!=jgt.end();)
+        {
+        node temp=*it;
+        if(temp.city1==k||temp.city2==k)//如果边的两点和删去的点相符合
+            {
+            it=jgt.erase(it); //删除元素，返回值指向已删除元素的下一个位置
+            }
+        else
+            ++it;
+        }
+        flag--;
+        n--;
+        m-=n;//边的数量减去n
+        }
+        cout<<endl;
+        kruskal();//求最小生成树
+    }
+    }
+    return 0;
+}
